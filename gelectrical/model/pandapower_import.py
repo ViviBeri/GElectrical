@@ -28,3 +28,47 @@ def summarize_network(network):
     if not lines:
         return "The imported network contains no recognized elements."
     return "\n".join(lines)
+
+
+def _has_active_row(table, required_flag=None):
+    """Return whether a table contains an in-service row matching a flag."""
+    if table is None or len(table) == 0:
+        return False
+    for _, row in table.iterrows():
+        in_service = row.get("in_service", True)
+        if in_service is False:
+            continue
+        if str(in_service).strip().lower() in ("false", "0"):
+            continue
+        if required_flag is not None:
+            flag = row.get(required_flag, False)
+            if flag is not True and str(flag).strip().lower() not in ("true", "1"):
+                continue
+        return True
+    return False
+
+
+def validate_powerflow_slack(network):
+    """Raise a useful error if no active slack source exists in the network."""
+    if _has_active_row(network.get("ext_grid")):
+        return
+    if _has_active_row(network.get("gen"), required_flag="slack"):
+        return
+    raise ValueError(
+        "Power flow cannot run: the imported network has no in-service "
+        "external grid or slack generator. Add an ext_grid or enable a "
+        "generator's slack option in the source network, then export JSON again."
+    )
+
+
+def run_imported_powerflow(network, pandapower_module=None):
+    """Run a balanced Pandapower power flow on an imported network in place."""
+    validate_powerflow_slack(network)
+    if pandapower_module is None:
+        import pandapower as pandapower_module
+    pandapower_module.runpp(
+        network,
+        run_control=True,
+        calculate_voltage_angles=True,
+    )
+    return network
