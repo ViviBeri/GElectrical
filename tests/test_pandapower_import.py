@@ -1,6 +1,18 @@
+import importlib.util
+from pathlib import Path
 import unittest
 
-from gelectrical.model.pandapower_import import summarize_network
+
+MODULE_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "gelectrical"
+    / "model"
+    / "pandapower_import.py"
+)
+SPEC = importlib.util.spec_from_file_location("pandapower_import", MODULE_PATH)
+PANDAPOWER_IMPORT = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(PANDAPOWER_IMPORT)
+summarize_network = PANDAPOWER_IMPORT.summarize_network
 
 
 class SummarizeNetworkTests(unittest.TestCase):
