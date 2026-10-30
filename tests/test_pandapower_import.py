@@ -15,6 +15,7 @@ SPEC.loader.exec_module(PANDAPOWER_IMPORT)
 summarize_network = PANDAPOWER_IMPORT.summarize_network
 run_imported_powerflow = PANDAPOWER_IMPORT.run_imported_powerflow
 validate_powerflow_slack = PANDAPOWER_IMPORT.validate_powerflow_slack
+load_pandapower_json = PANDAPOWER_IMPORT.load_pandapower_json
 
 
 class SummarizeNetworkTests(unittest.TestCase):
@@ -38,9 +39,6 @@ class SummarizeNetworkTests(unittest.TestCase):
             "The imported network contains no recognized elements.",
         )
 
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 
@@ -104,3 +102,26 @@ class PowerFlowValidationTests(unittest.TestCase):
             fake_pp.called_with[1],
             {"run_control": True, "calculate_voltage_angles": True},
         )
+
+
+class LoadPandapowerJsonTests(unittest.TestCase):
+    class FakePandapower:
+        def __init__(self):
+            self.filename = None
+            self.network = {"bus": [1]}
+
+        def from_json(self, filename):
+            self.filename = filename
+            return self.network
+
+    def test_loads_json_through_pandapower_and_returns_network(self):
+        fake_pp = self.FakePandapower()
+
+        network = load_pandapower_json("/tmp/sample.json", pandapower_module=fake_pp)
+
+        self.assertEqual(fake_pp.filename, "/tmp/sample.json")
+        self.assertIs(network, fake_pp.network)
+
+
+if __name__ == "__main__":
+    unittest.main()
