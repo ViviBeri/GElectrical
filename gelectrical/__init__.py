@@ -244,9 +244,15 @@ class MainWindow():
         file_filter.set_name("Pandapower JSON network")
         file_filter.add_pattern("*.json")
         file_filter.add_pattern("*.JSON")
-        open_dialog = Gtk.FileChooserNative.new(
-            "Import Pandapower JSON network", self.window,
-            Gtk.FileChooserAction.OPEN, "Import", "Cancel")
+        open_dialog = Gtk.FileChooserDialog(
+            title="Import Pandapower JSON network",
+            parent=self.window,
+            action=Gtk.FileChooserAction.OPEN,
+        )
+        open_dialog.add_buttons(
+            "Cancel", Gtk.ResponseType.CANCEL,
+            "Import", Gtk.ResponseType.ACCEPT,
+        )
         open_dialog.set_local_only(True)
         open_dialog.set_modal(True)
         open_dialog.set_filter(file_filter)
