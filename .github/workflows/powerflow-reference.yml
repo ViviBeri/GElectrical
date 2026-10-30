@@ -3,11 +3,14 @@ name: Power-flow reference test
 on:
   push:
     branches:
-      - test/powerflow-two-bus-reference
+      - master
+    paths:
+      - "gelectrical/**"
+      - "tests/**"
+      - ".github/workflows/powerflow-reference.yml"
   pull_request:
     paths:
-      - "gelectrical/model/pandapower.py"
-      - "gelectrical/misc.py"
+      - "gelectrical/**"
       - "tests/**"
       - ".github/workflows/powerflow-reference.yml"
   workflow_dispatch:
