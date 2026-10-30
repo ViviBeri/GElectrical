@@ -54,6 +54,8 @@ If you want to model a generator as PQ load with fixed reactive power and variab
                        'cos_phi':    self.get_field_dict('float', 'PF', '', 0.8),
                        'xdss_pu':      self.get_field_dict('float', 'Xdss', 'pu', 0.12),
                        'rdss_ohm':      self.get_field_dict('float', 'Rdss', 'Ohm', 0),
+                       'slack':          self.get_field_dict('bool', 'Slack ?', '', False),
+                       'slack_weight':   self.get_field_dict('float', 'Slack Weight', '', 1.0),
                        'in_service':    self.get_field_dict('bool', 'In Service ?', '', True)}
         self.text_model = [[(5,0), "${name}, ${ref}", True],
                            [(5,None), "${sn_mva}MVA, ${cos_phi}pf", True],
@@ -100,6 +102,8 @@ If you want to model a generator as PQ load with fixed reactive power and variab
                                        'cos_phi': self.fields['cos_phi']['value'],
                                        'xdss_pu': self.fields['xdss_pu']['value'],
                                        'rdss_ohm': self.fields['rdss_ohm']['value'],
+                                       'slack': self.fields['slack']['value'],
+                                       'slack_weight': self.fields['slack_weight']['value'],
                                        'in_service': self.fields['in_service']['value']}),)
         return power_model
 
