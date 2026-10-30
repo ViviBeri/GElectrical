@@ -34,7 +34,7 @@ def test_two_bus_powerflow_matches_analytical_voltage_reference():
         to_bus=load_bus,
         length_km=1.0,
         r_ohm_per_km=0.1,
-        x_ohm_per_km=0.0,
+        x_ohm_per_km=0.01,
         c_nf_per_km=0.0,
         max_i_ka=1.0,
     )
@@ -54,15 +54,17 @@ def test_two_bus_powerflow_matches_analytical_voltage_reference():
 
     model.run_powerflow("Power flow", runpp_3ph=False)
 
-    # Per phase: P_phase = V * (Vs - V) / R.
-    # The high-voltage solution is the physically relevant operating point.
+    # For a unity-PF load, the single-phase equivalent satisfies
+    # Vs^2 = (V + P_phase*R/V)^2 + (P_phase*X/V)^2.
+    # Solve the resulting quadratic in V^2 and select the high-voltage root.
     source_phase_voltage = 400.0 / math.sqrt(3.0)
     resistance_ohm = 0.1
+    reactance_ohm = 0.01
     phase_power_w = 100_000.0 / 3.0
-    discriminant = source_phase_voltage**2 - 4 * resistance_ohm * phase_power_w
-    expected_phase_voltage = (
-        source_phase_voltage + math.sqrt(discriminant)
-    ) / 2.0
+    coefficient = 2 * phase_power_w * resistance_ohm - source_phase_voltage**2
+    constant = phase_power_w**2 * (resistance_ohm**2 + reactance_ohm**2)
+    discriminant = coefficient**2 - 4 * constant
+    expected_phase_voltage = math.sqrt((-coefficient + math.sqrt(discriminant)) / 2.0)
     expected_voltage_pu = expected_phase_voltage / source_phase_voltage
 
     actual_voltage_pu = net.res_bus.vm_pu.at[load_bus]
