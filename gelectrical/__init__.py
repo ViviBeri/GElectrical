@@ -258,20 +258,13 @@ class MainWindow():
                 import pandapower as pp
                 network = pp.from_json(filename)
                 self.imported_pandapower_network = network
-                from .model.pandapower_import import summarize_network
-                summary = summarize_network(network)
-                dialog = Gtk.MessageDialog(
-                    self.window,
-                    Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                    Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                    "Pandapower network imported")
-                dialog.set_title("Imported network")
-                dialog.format_secondary_text(
-                    "File: {}\n{}\n\nThe network is loaded for inspection only. "
-                    "Your active GElectrical schematic and project file have not been changed."
-                    .format(os.path.basename(filename), summary))
+                from .view.pandapowerimport import PandapowerImportDialog
+                dialog = PandapowerImportDialog(
+                    self.window, network, os.path.basename(filename))
                 dialog.run()
-                dialog.destroy()
+                self.display_status(
+                    misc.INFO,
+                    "Pandapower network imported for read-only inspection.")
                 log.info("MainWindow - on_import_pandapower_json - imported " + filename)
             except Exception as error:
                 log.exception("MainWindow - on_import_pandapower_json - import failed")
