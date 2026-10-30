@@ -40,10 +40,18 @@ def test_two_bus_powerflow_matches_analytical_voltage_reference():
     )
     pp.create_load(net, bus=load_bus, p_mw=0.1, q_mvar=0.0)
 
-    # Exercise GElectrical's power-flow entry point with a prepared network.
+    # Supply the minimal result mappings normally populated during model build.
     model = PandaPowerModel.__new__(PandaPowerModel)
     model.power_model = net
     model.base_elements = {}
+    model.power_nodes_inverted = {
+        source_bus: "source",
+        load_bus: "load",
+    }
+    model.node_results = {}
+    model.power_elements = {}
+    model.element_results = {}
+
     model.run_powerflow("Power flow", runpp_3ph=False)
 
     # Per phase: P_phase = V * (Vs - V) / R.
