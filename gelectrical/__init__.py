@@ -240,9 +240,11 @@ class MainWindow():
 
     def on_import_pandapower_json(self, button):
         """Load an external pandapower JSON network for read-only inspection."""
-        open_dialog = Gtk.FileChooserNative.new(
+        open_dialog = Gtk.FileChooserDialog.new(
             "Import Pandapower JSON network", self.window,
-            Gtk.FileChooserAction.OPEN, "Import", "Cancel"
+            Gtk.FileChooserAction.OPEN,
+            "Cancel", Gtk.ResponseType.CANCEL,
+            "Import", Gtk.ResponseType.ACCEPT
         )
         open_dialog.set_local_only(True)
         open_dialog.set_modal(True)
