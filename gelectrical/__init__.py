@@ -283,7 +283,7 @@ class MainWindow():
                 text="Pandapower network imported"
             )
             dialog.set_title("Pandapower JSON import")
-            dialog.set_secondary_text("\\n".join(lines))
+            dialog.set_secondary_text("\n".join(lines))
             dialog.run()
             dialog.destroy()
             log.info("MainWindow - on_import_pandapower_json - Imported " + filename)
