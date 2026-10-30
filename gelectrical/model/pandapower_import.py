@@ -17,6 +17,13 @@ NETWORK_TABLES = (
 )
 
 
+def load_pandapower_json(filename, pandapower_module=None):
+    """Load a Pandapower JSON file without coupling callers to the package import."""
+    if pandapower_module is None:
+        import pandapower as pandapower_module
+    return pandapower_module.from_json(filename)
+
+
 def summarize_network(network):
     """Return a compact element-count summary for a Pandapower network."""
     lines = []
