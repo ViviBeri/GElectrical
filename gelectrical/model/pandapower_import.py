@@ -27,4 +27,4 @@ def summarize_network(network):
             lines.append("{}: {}".format(label, count))
     if not lines:
         return "The imported network contains no recognized elements."
-    return "\\n".join(lines)
+    return "\n".join(lines)
