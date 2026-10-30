@@ -15,7 +15,7 @@ class SummarizeNetworkTests(unittest.TestCase):
 
         self.assertEqual(
             summarize_network(network),
-            "Buses: 3\\nLines: 1\\nLoads: 2\\nExternal grids: 1",
+            "Buses: 3\nLines: 1\nLoads: 2\nExternal grids: 1",
         )
 
     def test_handles_missing_tables(self):
