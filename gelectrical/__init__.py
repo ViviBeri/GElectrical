@@ -238,6 +238,50 @@ class MainWindow():
         log.info('MainWindow - on_exit - Exiting')
         return False
 
+    def on_import_pandapower_json(self, button):
+        """Load a Pandapower JSON network for inspection without changing the schematic."""
+        file_filter = Gtk.FileFilter()
+        file_filter.set_name("Pandapower JSON network")
+        file_filter.add_pattern("*.json")
+        file_filter.add_pattern("*.JSON")
+        open_dialog = Gtk.FileChooserNative.new(
+            "Import Pandapower JSON network", self.window,
+            Gtk.FileChooserAction.OPEN, "Import", "Cancel")
+        open_dialog.set_local_only(True)
+        open_dialog.set_modal(True)
+        open_dialog.set_filter(file_filter)
+
+        response_id = open_dialog.run()
+        if response_id == Gtk.ResponseType.ACCEPT:
+            filename = open_dialog.get_filename()
+            try:
+                import pandapower as pp
+                network = pp.from_json(filename)
+                self.imported_pandapower_network = network
+                from .model.pandapower_import import summarize_network
+                summary = summarize_network(network)
+                dialog = Gtk.MessageDialog(
+                    self.window,
+                    Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                    Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                    "Pandapower network imported")
+                dialog.set_title("Imported network")
+                dialog.format_secondary_text(
+                    "File: {}\\n{}\\n\\nThe network is loaded for inspection only. "
+                    "Your active GElectrical schematic and project file have not been changed."
+                    .format(os.path.basename(filename), summary))
+                dialog.run()
+                dialog.destroy()
+                log.info("MainWindow - on_import_pandapower_json - imported " + filename)
+            except Exception as error:
+                log.exception("MainWindow - on_import_pandapower_json - import failed")
+                misc.display_message(
+                    self.window,
+                    "Could not import Pandapower JSON network: {}".format(error),
+                    message_type="error")
+        open_dialog.destroy()
+        self.builder.get_object("popup_open").hide()
+
     def on_open(self, button):
         """Open project selected by  the user"""
         # Create a filechooserdialog to open:
