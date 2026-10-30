@@ -22,6 +22,27 @@ RESULT_TABLES = (
 )
 
 
+def create_pandapower_json_file_chooser(parent):
+    """Create the GTK 3 file chooser used to select a Pandapower JSON file."""
+    file_filter = Gtk.FileFilter()
+    file_filter.set_name("Pandapower JSON network")
+    file_filter.add_pattern("*.json")
+    file_filter.add_pattern("*.JSON")
+    open_dialog = Gtk.FileChooserDialog(
+        title="Import Pandapower JSON network",
+        parent=parent,
+        action=Gtk.FileChooserAction.OPEN,
+    )
+    open_dialog.add_buttons(
+        "Cancel", Gtk.ResponseType.CANCEL,
+        "Import", Gtk.ResponseType.ACCEPT,
+    )
+    open_dialog.set_local_only(True)
+    open_dialog.set_modal(True)
+    open_dialog.set_filter(file_filter)
+    return open_dialog
+
+
 class PandapowerImportDialog:
     """Display imported Pandapower tables and balanced power-flow results."""
 
