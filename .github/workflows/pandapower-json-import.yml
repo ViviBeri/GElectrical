@@ -6,7 +6,10 @@ on:
       - feature/pandapower-json-import
   pull_request:
     paths:
+      - "gelectrical/__init__.py"
+      - "gelectrical/interface/mainwindow.glade"
       - "gelectrical/model/pandapower_import.py"
+      - "gelectrical/view/pandapowerimport.py"
       - "tests/test_pandapower_import.py"
       - ".github/workflows/pandapower-json-import.yml"
   workflow_dispatch:
