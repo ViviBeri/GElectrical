@@ -36,6 +36,8 @@ class Generator(ElementModel):
 
 Generators are modelled as voltage controlled PV nodes, with input parameters active power and a voltage set point. 
 
+Enable `Slack ?` to let this generator participate in active-power balancing. `Slack Weight` sets its relative contribution when distributed slack is used; larger positive values receive a larger share of the balancing power. When no generator is marked as slack, the external grid remains the slack source.
+
 If you want to model a generator as PQ load with fixed reactive power and variable voltage, please use a static generator instead.
 """
 
