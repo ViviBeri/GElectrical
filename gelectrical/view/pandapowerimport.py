@@ -2,16 +2,32 @@
 
 from gi.repository import Gtk
 
-from ..model.pandapower_import import NETWORK_TABLES, summarize_network
+from ..model.pandapower_import import (
+    NETWORK_TABLES,
+    run_imported_powerflow,
+    summarize_network,
+)
 
 
 MAX_DISPLAY_ROWS = 1000
+RESULT_TABLES = (
+    ("res_bus", "Bus results"),
+    ("res_line", "Line results"),
+    ("res_trafo", "Transformer results"),
+    ("res_trafo3w", "Three-winding transformer results"),
+    ("res_load", "Load results"),
+    ("res_sgen", "Static generator results"),
+    ("res_gen", "Generator results"),
+    ("res_ext_grid", "External grid results"),
+)
 
 
 class PandapowerImportDialog:
-    """Display imported Pandapower element tables without editing the network."""
+    """Display imported Pandapower tables and balanced power-flow results."""
 
     def __init__(self, parent, network, filename):
+        self.network = network
+        self.result_pages = {}
         self.dialog = Gtk.Dialog(
             title="Imported Pandapower Network",
             transient_for=parent,
@@ -34,9 +50,9 @@ class PandapowerImportDialog:
         summary.set_selectable(True)
         content.pack_start(summary, False, False, 0)
 
-        notebook = Gtk.Notebook()
-        notebook.set_scrollable(True)
-        content.pack_start(notebook, True, True, 0)
+        self.notebook = Gtk.Notebook()
+        self.notebook.set_scrollable(True)
+        content.pack_start(self.notebook, True, True, 0)
 
         for table_name, label in NETWORK_TABLES:
             table = network.get(table_name)
@@ -44,15 +60,26 @@ class PandapowerImportDialog:
                 continue
             page, count = self._build_table_page(table)
             tab_label = Gtk.Label(label="{} ({})".format(label, len(table.index)))
-            notebook.append_page(page, tab_label)
+            self.notebook.append_page(page, tab_label)
             if len(table.index) > count:
                 page.set_tooltip_text(
                     "Showing the first {} of {} rows.".format(count, len(table.index)))
 
-        if notebook.get_n_pages() == 0:
+        if self.notebook.get_n_pages() == 0:
             empty = Gtk.Label(label="No supported network elements were found.")
             empty.set_margin_top(24)
-            notebook.append_page(empty, Gtk.Label(label="Network"))
+            self.notebook.append_page(empty, Gtk.Label(label="Network"))
+
+        controls = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.run_button = Gtk.Button(label="Run Balanced Power Flow")
+        self.run_button.connect("clicked", self._on_run_powerflow)
+        controls.pack_start(self.run_button, False, False, 0)
+
+        self.status = Gtk.Label(label="Imported network is read-only; calculations do not modify the source project.")
+        self.status.set_xalign(0)
+        self.status.set_line_wrap(True)
+        controls.pack_start(self.status, True, True, 0)
+        content.pack_start(controls, False, False, 0)
 
         self.dialog.show_all()
 
@@ -96,6 +123,45 @@ class PandapowerImportDialog:
         scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled.add(tree)
         return scrolled, len(display_table)
+
+    def _on_run_powerflow(self, _button):
+        self.run_button.set_sensitive(False)
+        self.status.set_text("Running balanced AC power flow...")
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+
+        try:
+            run_imported_powerflow(self.network)
+            self._show_powerflow_results()
+            self.status.set_text("Power flow converged. Result tables are available in the Results tabs.")
+        except Exception as error:
+            self.status.set_text("Power flow failed: {}".format(error))
+        finally:
+            self.run_button.set_sensitive(True)
+
+    def _show_powerflow_results(self):
+        for table_name, label in RESULT_TABLES:
+            table = self.network.get(table_name)
+            if table is None or len(table.index) == 0:
+                continue
+
+            page, count = self._build_table_page(table)
+            if table_name in self.result_pages:
+                page_number = self.notebook.page_num(self.result_pages[table_name])
+                if page_number >= 0:
+                    self.notebook.remove_page(page_number)
+
+            tab_label = Gtk.Label(label="{} ({})".format(label, len(table.index)))
+            self.notebook.append_page(page, tab_label)
+            self.result_pages[table_name] = page
+            if len(table.index) > count:
+                page.set_tooltip_text(
+                    "Showing the first {} of {} rows.".format(count, len(table.index)))
+
+        self.notebook.show_all()
+        if self.result_pages:
+            first_result = next(iter(self.result_pages.values()))
+            self.notebook.set_current_page(self.notebook.page_num(first_result))
 
     def run(self):
         try:
