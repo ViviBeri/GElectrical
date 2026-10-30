@@ -44,6 +44,16 @@ class PandapowerImportGtkTests(unittest.TestCase):
             "res_line": self.pd.DataFrame({"loading_percent": [12.5]}),
         }
 
+    def test_file_chooser_uses_supported_gtk3_open_dialog(self):
+        chooser = self.module.create_pandapower_json_file_chooser(None)
+        try:
+            self.assertEqual(chooser.get_action(), Gtk.FileChooserAction.OPEN)
+            self.assertTrue(chooser.get_local_only())
+            self.assertIsNotNone(chooser.get_filter())
+            self.assertEqual(chooser.get_title(), "Import Pandapower JSON network")
+        finally:
+            chooser.destroy()
+
     def test_dialog_builds_network_tables_and_powerflow_control(self):
         dialog = self.module.PandapowerImportDialog(None, self.network, "sample.json")
         try:
