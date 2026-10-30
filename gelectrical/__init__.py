@@ -240,31 +240,20 @@ class MainWindow():
 
     def on_import_pandapower_json(self, button):
         """Load a Pandapower JSON network for inspection without changing the schematic."""
-        file_filter = Gtk.FileFilter()
-        file_filter.set_name("Pandapower JSON network")
-        file_filter.add_pattern("*.json")
-        file_filter.add_pattern("*.JSON")
-        open_dialog = Gtk.FileChooserDialog(
-            title="Import Pandapower JSON network",
-            parent=self.window,
-            action=Gtk.FileChooserAction.OPEN,
+        from .view.pandapowerimport import (
+            PandapowerImportDialog,
+            create_pandapower_json_file_chooser,
         )
-        open_dialog.add_buttons(
-            "Cancel", Gtk.ResponseType.CANCEL,
-            "Import", Gtk.ResponseType.ACCEPT,
-        )
-        open_dialog.set_local_only(True)
-        open_dialog.set_modal(True)
-        open_dialog.set_filter(file_filter)
+        from .model.pandapower_import import load_pandapower_json
+
+        open_dialog = create_pandapower_json_file_chooser(self.window)
 
         response_id = open_dialog.run()
         if response_id == Gtk.ResponseType.ACCEPT:
             filename = open_dialog.get_filename()
             try:
-                import pandapower as pp
-                network = pp.from_json(filename)
+                network = load_pandapower_json(filename)
                 self.imported_pandapower_network = network
-                from .view.pandapowerimport import PandapowerImportDialog
                 dialog = PandapowerImportDialog(
                     self.window, network, os.path.basename(filename))
                 dialog.run()
