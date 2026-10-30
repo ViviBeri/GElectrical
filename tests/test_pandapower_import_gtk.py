@@ -5,6 +5,7 @@ import os
 import sys
 import types
 import unittest
+from unittest.mock import patch
 
 os.environ.setdefault("GDK_BACKEND", "x11")
 
@@ -64,6 +65,31 @@ class PandapowerImportGtkTests(unittest.TestCase):
             self.assertEqual(set(dialog.result_pages), set(first_pages))
         finally:
             dialog.dialog.destroy()
+
+    def test_powerflow_button_runs_solver_and_displays_results(self):
+        dialog = self.module.PandapowerImportDialog(None, self.network, "sample.json")
+        try:
+            with patch.object(self.module, "run_imported_powerflow", return_value=self.network) as runner:
+                dialog.run_button.emit("clicked")
+            runner.assert_called_once_with(self.network)
+            self.assertIn("Power flow converged", dialog.status.get_text())
+            self.assertEqual(self.notebook_page_labels(dialog), 4)
+        finally:
+            dialog.dialog.destroy()
+
+    def test_powerflow_failure_is_reported_in_dialog(self):
+        dialog = self.module.PandapowerImportDialog(None, self.network, "sample.json")
+        try:
+            with patch.object(self.module, "run_imported_powerflow", side_effect=ValueError("No slack source")):
+                dialog.run_button.emit("clicked")
+            self.assertIn("Power flow failed: No slack source", dialog.status.get_text())
+            self.assertTrue(dialog.run_button.get_sensitive())
+        finally:
+            dialog.dialog.destroy()
+
+    @staticmethod
+    def notebook_page_labels(dialog):
+        return dialog.notebook.get_n_pages()
 
     def test_filename_markup_is_escaped(self):
         self.assertEqual(
