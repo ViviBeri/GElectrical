@@ -267,7 +267,7 @@ class MainWindow():
                     "Pandapower network imported")
                 dialog.set_title("Imported network")
                 dialog.format_secondary_text(
-                    "File: {}\\n{}\\n\\nThe network is loaded for inspection only. "
+                    "File: {}\n{}\n\nThe network is loaded for inspection only. "
                     "Your active GElectrical schematic and project file have not been changed."
                     .format(os.path.basename(filename), summary))
                 dialog.run()
