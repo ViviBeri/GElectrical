@@ -27,6 +27,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import logging
 import copy
+from functools import partial
 import cmath
 import numpy as np
 import pandas as pd
@@ -668,7 +669,9 @@ class PandaPowerModel:
                             # Add phantom power injection element to take up balance power
                             sgen_index = pp.create_sgen(self.power_model, bus_index,
                                 p_mw=p_mw, q_mvar=q_mvar)
-            pp.runpp(self.power_model, run_control=True, calculate_voltage_angles = True)
+            distributed_slack = bool((self.power_model.gen['slack'] & self.power_model.gen['in_service']).any())
+            pp.runpp(self.power_model, run_control=True, calculate_voltage_angles=True,
+                     distributed_slack=distributed_slack)
 
         # Data modification functions
 
@@ -1276,7 +1279,9 @@ class PandaPowerModel:
         if runpp_3ph:
             timeseries.run_timeseries(self.power_model, time_steps=time_steps, run=pp.runpp_3ph)
         else:
-            timeseries.run_timeseries(self.power_model, time_steps=time_steps)
+            distributed_slack = bool((self.power_model.gen['slack'] & self.power_model.gen['in_service']).any())
+            run = partial(pp.runpp, distributed_slack=distributed_slack)
+            timeseries.run_timeseries(self.power_model, time_steps=time_steps, run=run)
 
         # Compile results
 
