@@ -421,6 +421,8 @@ If <i>None</i> is selected, it is assumed that no dedicated CPE is provided and 
 'cos_phi': 'Rated generator cosine phi',
 'xdss_pu': 'Subtransient generator reactance in per unit',
 'rdss_ohm': 'Subtransient generator resistence in ohm',
+'slack': 'Whether this generator participates in distributed slack power balancing in balanced power flow calculations',
+'slack_weight': 'Relative contribution weight when distributed slack is enabled; larger values receive a larger share of the active power mismatch',
 'in_service': '',
 },
 'element_async_motor_3ph': {
